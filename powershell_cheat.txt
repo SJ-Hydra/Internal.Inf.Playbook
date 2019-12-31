@@ -1,0 +1,7 @@
+Port Scanner
+1..1024 | % {echo ((new-object Net.Sockets.TcpClient).Connect("10.0.0.100",$_)) "Port $_ is open!"} 2>$null
+
+Find File
+Get-Childitem -Path C:\ -Recurse -ErrorAction SilentlyContinue -Include *filetext*
+
+
