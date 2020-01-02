@@ -4,4 +4,7 @@ Port Scanner
 Find File
 Get-Childitem -Path C:\ -Recurse -ErrorAction SilentlyContinue -Include *filetext*
 
+Write to Bytes (To bytes, then back)
+$base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($FileName))
 
+[IO.File]::WriteAllBytes($FileName, [Convert]::FromBase64String($base64string))
