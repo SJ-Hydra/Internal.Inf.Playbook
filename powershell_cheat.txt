@@ -8,3 +8,6 @@ Write to Bytes (To bytes, then back)
 $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($FileName))
 
 [IO.File]::WriteAllBytes($FileName, [Convert]::FromBase64String($base64string))
+
+Read Document Metadata
+Get-Item <directory\filename> | Select-Object -Property *
