@@ -11,3 +11,6 @@ $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($FileName))
 
 Read Document Metadata
 Get-Item <directory\filename> | Select-Object -Property *
+
+(As Admin) Disable AV
+Set-MpPreference -DisableRealtimeMonitoring $true
