@@ -14,3 +14,8 @@ Get-Item <directory\filename> | Select-Object -Property *
 
 (As Admin) Disable AV
 Set-MpPreference -DisableRealtimeMonitoring $true
+
+Enum
+get-computerinfo
+get-userinfo
+invoke-edrchecker
