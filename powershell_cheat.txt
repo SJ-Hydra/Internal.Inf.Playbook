@@ -1,21 +1,21 @@
-Port Scanner
+## Port Scanner
 1..1024 | % {echo ((new-object Net.Sockets.TcpClient).Connect("10.0.0.100",$_)) "Port $_ is open!"} 2>$null
 
-Find File
+## Find File
 Get-Childitem -Path C:\ -Recurse -ErrorAction SilentlyContinue -Include *filetext*
 
-Write to Bytes (To bytes, then back)
+## Write to Bytes (To bytes, then back)
 $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($FileName))
 
 [IO.File]::WriteAllBytes($FileName, [Convert]::FromBase64String($base64string))
 
-Read Document Metadata
+## Read Document Metadata
 Get-Item <directory\filename> | Select-Object -Property *
 
-(As Admin) Disable AV
+## (As Admin) Disable AV
 Set-MpPreference -DisableRealtimeMonitoring $true
 
-Enum
+## Enum
 get-computerinfo
 get-userinfo
 invoke-edrchecker
