@@ -33,9 +33,14 @@
 
 [ ] Smbclient
 	Command: smbclient -U <domain>/<user> //<ip>
+	-Msfconsole
+	Module: windows/smb/psexec
 
 [ ] Crackmapexec
 	Command: crackmapexec smb <domain> -u <user> -p '<password>'
 
 [ ] RPCclient
 	Command: rpcclient -u <subdomain>\\<user> <domain>
+	
+[ ] msfconsole
+	Command: 
