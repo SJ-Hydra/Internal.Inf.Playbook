@@ -38,7 +38,7 @@
 
 [ ] Crackmapexec
 	Command: crackmapexec smb <domain> -u <user> -p '<password>'
-
+	Command: crackmapexec smb <SMBHost> -u <user> -d <domain> -p '<password>'
 [ ] RPCclient
 	Command: rpcclient -u <subdomain>\\<user> <domain>
 	
