@@ -47,3 +47,6 @@
 	
 [ ] With creds:
 	Command: cmd.exe (as admin), runas /user:<domain>\<username> /netonly cmd.exe
+	- Run Bloodhound
+	Command: Import-Module <bloodhound.ps1>
+	Command: invoke-bloodhound -collectionmethod session -domaincontroller <dc name> -domain <domainname> 
