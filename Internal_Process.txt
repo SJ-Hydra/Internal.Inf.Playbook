@@ -43,4 +43,7 @@
 	Command: rpcclient -u <subdomain>\\<user> <domain>
 	
 [ ] msfconsole
-	Command: 
+	Command:
+	
+[ ] With creds:
+	Command: cmd.exe (as admin), runas /user:<domain>\<username> /netonly cmd.exe
