@@ -50,3 +50,11 @@
 	- Run Bloodhound
 	Command: Import-Module <bloodhound.ps1>
 	Command: invoke-bloodhound -collectionmethod session -domaincontroller <dc name> -domain <domainname> 
+
+[ ] Service Scans: FTP
+[ ] Service Scans: Telnet
+[ ] Service Scans: WebApplications (TCP80, TCP443, TCP8000, etc.)
+[ ] Service Scans: NFS File Share (TCP2049)
+[ ] Service Scans: Cisco Smart (TCP4786)
+[ ] Service Scans: MongoDB (TCP27017)
+[ ] Service Scans: JavaRMI (TCP1099)
