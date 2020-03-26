@@ -1,0 +1,25 @@
+
+## Attempt to gain sensitive data, gain access
+[ ] Sniff exposed wireless signals: Airmon-ng
+    command: airmon-ng check kill
+    command: airmon-ng start <adapter>
+    
+[ ] Check wireless signals encryption
+    Encryption cipher
+    Authorization protocol
+
+[ ] Enterprise Networks -- Run Eviltwin
+    Command: python wifisuite.py -iwlan0mon -s"<name> -m <mac> -c1 --certname="<certname>" eviltwin
+    
+[ ] Sniff network traffic by channel for usernames
+
+[ ] Password guess against WAP
+
+## With access, check networking
+[ ] Network segmentation
+    Check for network access; host discovery
+    Command: nmap -sn -iL private_IP_ranges.txt -oG Discovered_hosts.txt
+    
+## If on-prem, attempt rouge access point
+
+## If on-prem, catalog all APs for auditing purposes.  
