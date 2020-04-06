@@ -8,6 +8,9 @@
 	- host <ip>
 	- dig @<ip> <domainname>
 
+[ ] Find mail servers. 
+	- Are they vuln to 2020-0688?
+
 [ ] Attempt null sessions
 	- rpcclient -U "" <domain name>
 		- Then try to enumdomusers
