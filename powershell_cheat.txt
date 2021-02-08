@@ -19,3 +19,6 @@ Set-MpPreference -DisableRealtimeMonitoring $true
 get-computerinfo
 get-userinfo
 invoke-edrchecker
+
+## Search Files
+Get-ChildItem -Recurse | ? { $_.Name -eq "text.txt" }
