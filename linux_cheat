@@ -1,0 +1,2 @@
+// Find SUID files
+find . -perm /4000
